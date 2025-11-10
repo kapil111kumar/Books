@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+tortoise-orm
+aerich
+httpx
+pytest
+pytest-asyncio
