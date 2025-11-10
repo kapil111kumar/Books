@@ -1,14 +1,15 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query
 from tortoise.contrib.fastapi import register_tortoise
 from app import models, schemas, crud
 from app.config import DATABASE_URL
 from typing import List, Optional
+from app.auth import verify_api_key
 
 app = FastAPI(title="Book CRUD API")
 
 
 # Routes
-@app.post("/books/", response_model=schemas.BookOut, status_code=201)
+@app.post("/books/", response_model=schemas.BookOut, status_code=201, dependencies=[Depends(verify_api_key)])
 async def create_book(book: schemas.BookCreate):
     existing = await models.Book.filter(title=book.title).first()
     if existing:
@@ -35,7 +36,7 @@ async def get_book(book_id: int):
     return book
 
 
-@app.put("/books/{book_id}", response_model=schemas.BookOut)
+@app.put("/books/{book_id}", response_model=schemas.BookOut, dependencies=[Depends(verify_api_key)])
 async def update_book(book_id: int, book_update: schemas.BookUpdate):
     updated = await crud.update_book(book_id, book_update.title, book_update.description)
     if not updated:
@@ -43,7 +44,7 @@ async def update_book(book_id: int, book_update: schemas.BookUpdate):
     return updated
 
 
-@app.delete("/books/{book_id}", status_code=204)
+@app.delete("/books/{book_id}", status_code=204, dependencies=[Depends(verify_api_key)])
 async def delete_book(book_id: int):
     deleted = await crud.delete_book(book_id)
     if not deleted:
